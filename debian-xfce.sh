@@ -116,4 +116,44 @@ systemctl --user enable --now rclone-gdrive.service
 echo "=== 10. Reiniciando servicios de audio (PipeWire/WirePlumber) ==="
 systemctl --user restart pipewire pipewire-pulse wireplumber || true
 
+echo "=== 11. Instalando y configurando Redshift (3900K) ==="
+sudo apt install -y redshift redshift-gtk
+
+# Crear directorio de configuración si no existe
+mkdir -p "$HOME/.config"
+
+# Crear el archivo de configuración con la temperatura fija de 3900K
+cat << 'EOF' > "$HOME/.config/redshift.conf"
+[redshift]
+temp-day=3900
+temp-night=3900
+transition=1
+adjustment-method=randr
+location-provider=manual
+
+[manual]
+lat=0.0
+lon=0.0
+EOF
+
+# Crear el servicio systemd de usuario para Redshift
+mkdir -p "$HOME/.config/systemd/user"
+cat << EOF > "$HOME/.config/systemd/user/redshift.service"
+[Unit]
+Description=Redshift color temperature adjustment
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/redshift
+Restart=always
+
+[Install]
+WantedBy=graphical-session.target
+EOF
+
+# Habilitar el servicio para que inicie al abrir la sesión gráfica
+systemctl --user daemon-reload
+systemctl --user enable redshift.service
+
 echo "¡Instalación y configuración completadas con éxito!"
