@@ -23,8 +23,9 @@ echo "=== 3. Instalando paquetes desde los repositorios oficiales de Debian ==="
 sudo apt install --no-install-recommends -y \
     xrdp xorg xfce4 lightdm bluez bluez-tools blueman \
     pavucontrol libspa-0.2-bluetooth kde-spectacle \
+    pipewire pipewire-audio-client-libraries pipewire-pulse wireplumber \
     neowofetch build-essential linux-headers-$(uname -r) \
-    flatpak mousepad git calf-plugins easyeffects rclone
+    flatpak mousepad git curl calf-plugins easyeffects rclone
 
 echo "=== 4. Configurando WirePlumber para Bluetooth (A2DP Source) ==="
 cat << 'EOF' > "$HOME/.config/wireplumber/wireplumber.conf.d/50-bluez-fix.conf"
