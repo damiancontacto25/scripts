@@ -81,7 +81,8 @@ flatpak install -y flathub \
     org.kde.kdenlive \
     org.kde.okular \
     org.kde.haruna \
-    org.gnome.clocks
+    org.gnome.clocks \
+    org.cryptomator.Cryptomator
 
 echo "=== 10. Configurando Redshift a 3900K fija ==="
 cat << 'EOF' > "$HOME/.config/redshift.conf"
