@@ -62,7 +62,8 @@ flatpak install -y flathub \
     org.kde.kdenlive \
     org.kde.okular \
     org.kde.haruna \
-    org.kde.kclock
+    org.kde.kclock \
+    org.cryptomator.Cryptomator
 
 echo "=== 8. Creando servicio Systemd optimizado para OneDrive ==="
 cat << EOF > "$HOME/.config/systemd/user/rclone-onedrive.service"
