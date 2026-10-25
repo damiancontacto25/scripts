@@ -7,6 +7,7 @@ echo "=== 1. Creando directorios de configuración y puntos de montaje ==="
 mkdir -p "$HOME/google-drive"
 mkdir -p "$HOME/onedrive"
 mkdir -p "$HOME/.config/systemd/user"
+mkdir -p "$HOME/.config/wireplumber/wireplumber.conf.d"
 
 echo "=== 2. Configurando el repositorio oficial e instalando Microsoft Edge ==="
 sudo apt update
@@ -43,10 +44,17 @@ sudo sysctl --system || true
 # Habilitar TRIM automático para la salud del SSD
 sudo systemctl enable fstrim.timer
 
-echo "=== 6. Configurando Flatpak y agregando repositorio Flathub ==="
+echo "=== 6. Configurando WirePlumber para Bluetooth (A2DP Source) ==="
+cat << 'EOF' > "$HOME/.config/wireplumber/wireplumber.conf.d/50-bluez-fix.conf"
+monitor.bluez.properties = {
+    bluez5.roles = [ a2dp_source ]
+}
+EOF
+
+echo "=== 7. Configurando Flatpak y agregando repositorio Flathub ==="
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
-echo "=== 7. Instalando aplicaciones Flatpak ==="
+echo "=== 8. Instalando aplicaciones Flatpak ==="
 flatpak install -y flathub \
     org.kde.kcalc \
     com.brave.Browser \
@@ -61,9 +69,10 @@ flatpak install -y flathub \
     org.kde.kdenlive \
     org.kde.okular \
     org.kde.haruna \
-    org.kde.kclock
+    org.kde.kclock \
+    org.cryptomator.Cryptomator
 
-echo "=== 8. Creando servicio Systemd optimizado para OneDrive ==="
+echo "=== 9. Creando servicio Systemd optimizado para OneDrive ==="
 cat << EOF > "$HOME/.config/systemd/user/rclone-onedrive.service"
 [Unit]
 Description=Rclone OneDrive Mount
@@ -92,7 +101,7 @@ RestartSec=10
 WantedBy=default.target
 EOF
 
-echo "=== 9. Creando servicio Systemd optimizado para Google Drive ==="
+echo "=== 10. Creando servicio Systemd optimizado para Google Drive ==="
 cat << EOF > "$HOME/.config/systemd/user/rclone-gdrive.service"
 [Unit]
 Description=Rclone Google Drive Mount (full cache tuned)
@@ -121,9 +130,12 @@ RestartSec=10
 WantedBy=default.target
 EOF
 
-echo "=== 10. Habilitando y arrancando servicios de usuario ==="
+echo "=== 11. Habilitando y arrancando servicios de usuario ==="
 systemctl --user daemon-reload
 systemctl --user enable --now rclone-onedrive.service
 systemctl --user enable --now rclone-gdrive.service
+
+echo "=== 12. Reiniciando servicios de audio (PipeWire/WirePlumber) ==="
+systemctl --user restart pipewire pipewire-pulse wireplumber || true
 
 echo "¡Instalación y optimizaciones para Kubuntu Minimal en SSD completadas con éxito!"
