@@ -26,16 +26,23 @@ sudo apt install --no-install-recommends -y \
     pipewire pipewire-audio-client-libraries pipewire-pulse wireplumber \
     neowofetch build-essential linux-headers-$(uname -r) \
     flatpak mousepad git curl calf-plugins easyeffects rclone \
-    redshift redshift-gtk zram-tools
+    redshift redshift-gtk zram-tools menulibre
 
-echo "=== 4. Configurando ZRAM (Swap comprimida en RAM de 4GB con zstd) ==="
+echo "=== 4. Instalando el tema de iconos MoreWaita ==="
+git clone https://github.com/somepaulo/MoreWaita.git /tmp/MoreWaita
+cd /tmp/MoreWaita
+sudo ./install.sh
+cd -
+rm -rf /tmp/MoreWaita
+
+echo "=== 5. Configurando ZRAM (Swap comprimida en RAM de 4GB con zstd) ==="
 sudo tee /etc/default/zramswap > /dev/null << 'EOF'
 ALGO=zstd
 SIZE=4096
 EOF
 sudo systemctl restart zramswap || true
 
-echo "=== 5. Optimizando parámetros del Kernel y Planificador E/S para HDD ==="
+echo "=== 6. Optimizando parámetros del Kernel y Planificador E/S para HDD ==="
 # Priorizar uso de RAM sobre Swap y mantener la caché de archivos en memoria
 sudo tee /etc/sysctl.d/99-performance.conf > /dev/null << 'EOF'
 vm.swappiness = 10
@@ -48,17 +55,17 @@ sudo tee /etc/udev/rules.d/60-ioschedulers.rules > /dev/null << 'EOF'
 ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
 EOF
 
-echo "=== 6. Configurando WirePlumber para Bluetooth (A2DP Source) ==="
+echo "=== 7. Configurando WirePlumber para Bluetooth (A2DP Source) ==="
 cat << 'EOF' > "$HOME/.config/wireplumber/wireplumber.conf.d/50-bluez-fix.conf"
 monitor.bluez.properties = {
     bluez5.roles = [ a2dp_source ]
 }
 EOF
 
-echo "=== 7. Configurando Flatpak y agregando repositorio Flathub ==="
+echo "=== 8. Configurando Flatpak y agregando repositorio Flathub ==="
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
-echo "=== 8. Instalando aplicaciones Flatpak ==="
+echo "=== 9. Instalando aplicaciones Flatpak ==="
 flatpak install -y flathub \
     org.gnome.Calculator \
     com.brave.Browser \
@@ -75,7 +82,7 @@ flatpak install -y flathub \
     org.kde.haruna \
     org.gnome.clocks
 
-echo "=== 9. Configurando Redshift a 3900K fija ==="
+echo "=== 10. Configurando Redshift a 3900K fija ==="
 cat << 'EOF' > "$HOME/.config/redshift.conf"
 [redshift]
 temp-day=3900
@@ -103,7 +110,7 @@ Restart=always
 WantedBy=graphical-session.target
 EOF
 
-echo "=== 10. Creando servicio Systemd optimizado para OneDrive ==="
+echo "=== 11. Creando servicio Systemd optimizado para OneDrive ==="
 cat << EOF > "$HOME/.config/systemd/user/rclone-onedrive.service"
 [Unit]
 Description=Rclone OneDrive Mount
@@ -132,7 +139,7 @@ RestartSec=10
 WantedBy=default.target
 EOF
 
-echo "=== 11. Creando servicio Systemd optimizado para Google Drive ==="
+echo "=== 12. Creando servicio Systemd optimizado para Google Drive ==="
 cat << EOF > "$HOME/.config/systemd/user/rclone-gdrive.service"
 [Unit]
 Description=Rclone Google Drive Mount (full cache tuned)
@@ -161,13 +168,13 @@ RestartSec=10
 WantedBy=default.target
 EOF
 
-echo "=== 12. Habilitando y arrancando servicios de usuario ==="
+echo "=== 13. Habilitando y arrancando servicios de usuario ==="
 systemctl --user daemon-reload
 systemctl --user enable --now rclone-onedrive.service
 systemctl --user enable --now rclone-gdrive.service
 systemctl --user enable redshift.service
 
-echo "=== 13. Reiniciando servicios de audio (PipeWire/WirePlumber) ==="
+echo "=== 14. Reiniciando servicios de audio (PipeWire/WirePlumber) ==="
 systemctl --user restart pipewire pipewire-pulse wireplumber || true
 
 echo "¡Instalación y optimizaciones completadas con éxito!"
